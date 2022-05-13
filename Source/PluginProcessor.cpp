@@ -6,12 +6,20 @@
   ==============================================================================
 */
 
-
+#include <complex>
+#include <vector>
+#include "ComplexFFT.h"
+#include "ComplexInverseFFT.h"
+#include "RealFFT.h"
+#include "RealInverseFFT.h"
+#include "SpectrumFFT.h"
+#include "SpectrumInverseFFT.h"
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "SineWaveVoice.h"
 #include "SineWaveSound.h"
-
+#include "WaveformModel.h"
+#include "WavetableBuilder.h"
 //==============================================================================
 NewProjectAudioProcessor::NewProjectAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -25,7 +33,36 @@ NewProjectAudioProcessor::NewProjectAudioProcessor()
                        )
 #endif
 {
-    
+    //std::vector<float> waveform(1024);
+    //for (int i = 0; i < waveform.size(); i++) {
+    //    float t = float(i) / float(waveform.size());
+
+    //    waveform[i] =0.25f+sin(3.0f * t * juce::MathConstants<float>::twoPi);
+    //}
+    //
+    //std::vector<float> amplitudes(513);
+    //std::vector<float> phases(513);
+    ////rozmiar sygnalu dlugosc analizowanego bloku 
+    //SpectrumFFT<float> sfft(1024);
+    //sfft.perform(waveform.data(), amplitudes.data(), phases.data());
+    double f[MIDI_KEY_COUNT];
+    for (int i = 0; i < MIDI_KEY_COUNT; i++) {
+        f[i] = 440 * pow(2, (i - 69) / 12.0);
+    }
+  
+    WavetableBuilder<double, float> builder;
+    WaveformModel < double > model(1024);
+    for (int i = 0; i < 1024; i++) {
+        float_t t = (i / 1024.0);
+
+        model.m_samples[i] = LowFrequencyOscillator<float>::square(t);
+        //model.m_samples[i] = sin(juce::MathConstants<double>::twoPi * t);
+    }
+    //1 wavetable
+    // build(const WaveformModel<T>* model, int count, const T* base_frequencies, size_t wavetable_size, Wavetable<U>* result, T sample_rate) {
+    //budujemy 128 wavetables bo tyle jest klawiszy
+
+    builder.build(&model,MIDI_KEY_COUNT,f,m_wavetable_size,m_wavetable.data(), 44100);
     m_synthesizer.addSound(new SineWaveSound());
     m_vibrato_waveform = Waveform::SQUARE;
     //m_synthesizer.addVoice(new SineWaveVoice());

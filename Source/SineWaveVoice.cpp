@@ -12,7 +12,7 @@ bool SineWaveVoice::canPlaySound(juce::SynthesiserSound* sound)
 {
     return dynamic_cast<SineWaveSound*> (sound) != nullptr;
 }
-
+                                //numer klawisza 
 void SineWaveVoice::startNote(int midiNoteNumber, float velocity,
     juce::SynthesiserSound*, int /*currentPitchWheelPosition*/)
 {
@@ -37,7 +37,8 @@ void SineWaveVoice::startNote(int midiNoteNumber, float velocity,
     //auto cyclesPerSample = cyclesPerSecond / getSampleRate();
 
     //angleDelta = cyclesPerSample * juce::MathConstants<double>::twoPi;
-    m_normalized_frequency = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber) / getSampleRate();
+    m_wavetable = &m_plugin_processor->m_wavetable[midiNoteNumber];
+    m_normalized_frequency =juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber) / getSampleRate();
     m_phase = 0;
 }
 
@@ -60,6 +61,7 @@ void SineWaveVoice::pitchWheelMoved(int /*newValue*/) {}
 void SineWaveVoice::controllerMoved(int /*controllerNumber*/, int /*newValue*/) {}
 
 
+//kiedy gramy
 void SineWaveVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples)
 {
     if (m_normalized_frequency != 0.0)
@@ -68,14 +70,28 @@ void SineWaveVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int 
         for (int i = 0; i < numSamples; i++) {
             float envelope = m_envelope.next();
             //generowanie dzwiêku 
-            auto currentSample = (float)(std::sin(m_phase * juce::MathConstants<float>::twoPi) * level) * envelope;
+            //auto currentSample = (float)(std::sin(m_phase * juce::MathConstants<float>::twoPi) * level) * envelope;
+            /*auto currentSample = (float)(m_plugin_processor->m_wavetable.samples[int(m_phase*m_plugin_processor->m_wavetable.samples.size())] * level) * envelope;*/
+            //z obecnego wavetable bierzemy wyliczne na podstawie phase'a
+            //interpolacja liniowa
+            float sample = m_phase * m_plugin_processor->m_wavetable_size;
+            int j0 = (int)sample;
+            int j1 = sample + 1;
+            float coef = sample - j0;
+            float val1 = m_wavetable->samples[j0];
+            float val2 = m_wavetable->samples[j1];
 
+            auto currentSample = (val1+coef*(val2-val1))* level * envelope;
+            //auto currentSample=()
             for (auto i = outputBuffer.getNumChannels(); --i >= 0;)
                 outputBuffer.addSample(i, startSample, currentSample);
             //zmiana czêstotliwoœci odgrywanego dzwiêku
             float f =m_normalized_frequency*pow(2,
                 m_plugin_processor->m_vibrato_waveform_samples[i]*m_plugin_processor->m_vibrato_cents/1200);
                 m_phase+=f;
+                if (m_phase >= 1) {
+                    m_phase -= 1;
+               }
             ++startSample;
             if (m_envelope.isFinished()) {
                 clearCurrentNote();

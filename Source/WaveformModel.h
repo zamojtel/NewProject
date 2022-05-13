@@ -9,7 +9,7 @@ public:
 	WaveformModel(size_t size) {
 		m_samples.resize(size);
 		for (size_t i = 0; i < m_samples.size(); i++) {
-			m_sample[i] = 0;
+			m_samples[i] = 0;
 		}
 	}
 

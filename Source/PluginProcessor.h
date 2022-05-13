@@ -12,10 +12,11 @@
 #include "Waveform.h"
 #include "LowFrequencyOscillator.h"
 #include <vector>
-
+#include "Wavetable.h"
 //==============================================================================
 /**
 */
+const int MIDI_KEY_COUNT = 128;
 class NewProjectAudioProcessor  : public juce::AudioProcessor
 {
 public:
@@ -76,6 +77,8 @@ public:
     float m_release = 100;
     float m_vibrato_hertz = 2;
     float m_vibrato_cents = 20;
+    std::array<Wavetable<float>,MIDI_KEY_COUNT> m_wavetable;
+    int m_wavetable_size = 4096; //
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NewProjectAudioProcessor);

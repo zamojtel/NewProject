@@ -29,4 +29,5 @@ private:
     //czestotliwosc generowanej fali dzwiekowej podstawowa (dopowiadajaca wcisnietemu klawiszowi)
     float m_normalized_frequency;
     float m_phase;
+    Wavetable<float>* m_wavetable;
 };
