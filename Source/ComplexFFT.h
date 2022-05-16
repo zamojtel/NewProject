@@ -29,7 +29,6 @@ public:
 		p_perform(m_signal_size, input, output, 1);
 	}
 
-
 	void set_signal_size(size_t value)
 	{
 		if(value != m_signal_size)

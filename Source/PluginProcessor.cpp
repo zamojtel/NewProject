@@ -20,6 +20,7 @@
 #include "SineWaveSound.h"
 #include "WaveformModel.h"
 #include "WavetableBuilder.h"
+#include "WaveformFunctions.h"
 //==============================================================================
 NewProjectAudioProcessor::NewProjectAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -45,24 +46,26 @@ NewProjectAudioProcessor::NewProjectAudioProcessor()
     ////rozmiar sygnalu dlugosc analizowanego bloku 
     //SpectrumFFT<float> sfft(1024);
     //sfft.perform(waveform.data(), amplitudes.data(), phases.data());
+    m_oscillator_waveform = OscillatorWaveform::SINE;
     double f[MIDI_KEY_COUNT];
     for (int i = 0; i < MIDI_KEY_COUNT; i++) {
         f[i] = 440 * pow(2, (i - 69) / 12.0);
     }
-  
-    WavetableBuilder<double, float> builder;
+    // to co u dolu wrzucone do funkcji
+    generate_wavetables();
+   /* WavetableBuilder<double, float> builder;
     WaveformModel < double > model(1024);
     for (int i = 0; i < 1024; i++) {
         float_t t = (i / 1024.0);
 
-        model.m_samples[i] = LowFrequencyOscillator<float>::square(t);
-        //model.m_samples[i] = sin(juce::MathConstants<double>::twoPi * t);
-    }
+        model.m_samples[i] = LowFrequencyOscillator<float>::sine(t);
+        model.m_samples[i] = sin(juce::MathConstants<double>::twoPi * t);
+    }*/
     //1 wavetable
     // build(const WaveformModel<T>* model, int count, const T* base_frequencies, size_t wavetable_size, Wavetable<U>* result, T sample_rate) {
     //budujemy 128 wavetables bo tyle jest klawiszy
 
-    builder.build(&model,MIDI_KEY_COUNT,f,m_wavetable_size,m_wavetable.data(), 44100);
+  /*  builder.build(&model,MIDI_KEY_COUNT,f,m_wavetable_size,m_wavetable.data(), 44100);*/
     m_synthesizer.addSound(new SineWaveSound());
     m_vibrato_waveform = Waveform::SQUARE;
     //m_synthesizer.addVoice(new SineWaveVoice());
@@ -70,7 +73,6 @@ NewProjectAudioProcessor::NewProjectAudioProcessor()
     for (int i = 0; i < 16; i++) {
         m_synthesizer.addVoice(new SineWaveVoice(this));
     }
-
 }
 
 NewProjectAudioProcessor::~NewProjectAudioProcessor()
@@ -295,4 +297,72 @@ void NewProjectAudioProcessor::setVibratoWaveform(Waveform wave) {
 
 Waveform NewProjectAudioProcessor::getVibratoWaveform() {
     return m_vibrato_waveform;
+}
+
+void NewProjectAudioProcessor::generate_wavetables() {
+    int model_size = 1024;
+    double frequency = this->getSampleRate();
+    //tylko na czas wypelniania wavetable
+
+    WaveformModel < double > model(model_size);
+    switch (m_oscillator_waveform) {
+    case OscillatorWaveform::SINE:
+        for (int i = 0; i < model_size; i++) {
+            float_t t = (i /(float)model_size);
+            //model square
+            model.m_samples[i] =WaveformFunctions::sine<double>(t);
+        }
+        break;
+    case OscillatorWaveform::SQUARE:
+        for (int i = 0; i < model_size; i++) {
+            float_t t = (i / (float)model_size);
+            //model square
+            model.m_samples[i] = WaveformFunctions::square<double>(t);
+        }
+        break;
+    case OscillatorWaveform::PULSE025: 
+        for (int i = 0; i < model_size; i++) {
+            float_t t = (i / (float)model_size);
+            //model square
+            model.m_samples[i] = WaveformFunctions::pulse<double>(0.25,t);
+        }
+        break;
+    case OscillatorWaveform::PULSE01:
+        for (int i = 0; i < model_size; i++) {
+            float_t t = (i / (float)model_size);
+            //model square
+            model.m_samples[i] = WaveformFunctions::pulse<double>(0.1, t);
+        }
+        break;
+    case OscillatorWaveform::SAW:
+        for (int i = 0; i < model_size; i++) {
+            float_t t = (i / (float)model_size);
+            //model square
+            model.m_samples[i] =WaveformFunctions::saw<double>(t);
+        }
+        break;
+    case OscillatorWaveform::TRIANGLE:
+        for (int i = 0; i < model_size; i++) {
+            float_t t = (i / (float)model_size);
+            //model square
+            model.m_samples[i] = WaveformFunctions::triangle<double>(t);
+        }
+        break;
+    }
+
+    double f[MIDI_KEY_COUNT];
+    for (int i = 0; i < MIDI_KEY_COUNT; i++) {
+        f[i] = 440 * pow(2, (i - 69) / 12.0);
+    }
+    WavetableBuilder<double, float> builder;
+    builder.build(&model, MIDI_KEY_COUNT,f, m_wavetable_size, m_wavetable.data(),frequency);
+}
+
+void NewProjectAudioProcessor::setOscillatorWaveform(OscillatorWaveform oscillator_wave_form) {
+    m_oscillator_waveform = oscillator_wave_form;
+    generate_wavetables();
+}
+
+OscillatorWaveform NewProjectAudioProcessor::getOscillatorWaveform() const {
+    return m_oscillator_waveform;
 }

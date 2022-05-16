@@ -36,6 +36,7 @@ private:
     juce::Slider m_vibrato_rate_slider;
     juce::Slider m_vibrato_depth_slider;
     juce::ComboBox m_vibrato_shape_combobox;
+    juce::ComboBox m_oscillator_waveform_combobox;
     juce::Label m_attack_slider_label;
     juce::Label m_decay_slider_label;
     juce::Label m_sustain_slider_label;

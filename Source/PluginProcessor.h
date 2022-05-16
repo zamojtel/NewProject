@@ -7,12 +7,13 @@
 */
 
 #pragma once
-
 #include <JuceHeader.h>
 #include "Waveform.h"
 #include "LowFrequencyOscillator.h"
 #include <vector>
 #include "Wavetable.h"
+#include "OscillatorWaveform.h"
+
 //==============================================================================
 /**
 */
@@ -67,7 +68,9 @@ public:
     float getAttack();
     float getVibratoHertz() const;
     float getVibratoDepth() const;
-    
+    void setOscillatorWaveform(OscillatorWaveform waveform);
+    void generate_wavetables();
+    OscillatorWaveform getOscillatorWaveform() const;
     //Vector na próbki fali w efekcie vibrato 
     std::vector<float> m_vibrato_waveform_samples;
     //general settings
@@ -79,6 +82,8 @@ public:
     float m_vibrato_cents = 20;
     std::array<Wavetable<float>,MIDI_KEY_COUNT> m_wavetable;
     int m_wavetable_size = 4096; //
+
+    OscillatorWaveform m_oscillator_waveform;
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NewProjectAudioProcessor);

@@ -22,8 +22,17 @@ NewProjectAudioProcessorEditor::NewProjectAudioProcessorEditor (NewProjectAudioP
     m_vibrato_shape_combobox.addItem("Square", (int)Waveform::SQUARE);
     m_vibrato_shape_combobox.addItem("Traingle", (int)Waveform::TRIANGLE);
     m_vibrato_shape_combobox.setSelectedId(audioProcessor.getVibratoWaveform());
+
+    m_oscillator_waveform_combobox.addItem("Sine", (int)OscillatorWaveform::SINE);
+    m_oscillator_waveform_combobox.addItem("Square", (int)OscillatorWaveform::SQUARE);
+    m_oscillator_waveform_combobox.addItem("Triangle", (int)OscillatorWaveform::TRIANGLE);
+    m_oscillator_waveform_combobox.addItem("Saw", (int)OscillatorWaveform::SAW);
+    m_oscillator_waveform_combobox.addItem("Pulse 0.1", (int)OscillatorWaveform::PULSE01);
+    m_oscillator_waveform_combobox.addItem("Pulse 0.25", (int)OscillatorWaveform::PULSE025);
+    m_oscillator_waveform_combobox.setSelectedId((int)audioProcessor.getOscillatorWaveform());
+
  
-    setSize (400, 300);
+    setSize (400, 500);
     /*audioProcessor*/
     //adding sliders and labels
     addAndMakeVisible(m_attack_slider);
@@ -40,6 +49,7 @@ NewProjectAudioProcessorEditor::NewProjectAudioProcessorEditor (NewProjectAudioP
     addAndMakeVisible(m_vibrato_depth_slider_label);
     addAndMakeVisible(m_vibrato_shape_combobox);
     addAndMakeVisible(m_vibrato_shape_label);
+    addAndMakeVisible(m_oscillator_waveform_combobox);
 
     //attack
     // 
@@ -117,9 +127,16 @@ NewProjectAudioProcessorEditor::NewProjectAudioProcessorEditor (NewProjectAudioP
     m_vibrato_shape_combobox.onChange= [this]() {
         audioProcessor.setVibratoWaveform((Waveform)m_vibrato_shape_combobox.getSelectedId());
     };
+
     m_vibrato_shape_label.setText("Vibrato shape: ", juce::NotificationType::dontSendNotification);
     m_vibrato_shape_label.setBounds(label_left, 265, getWidth() - sliderLeft - 10, 20);
+    //combobox waveshape
 
+    m_oscillator_waveform_combobox.setBounds(sliderLeft, 305, getWidth() - sliderLeft - 10, 20);
+    m_oscillator_waveform_combobox.onChange = [this]() {
+        //by zmienic fale ktora gramy 
+        audioProcessor.setOscillatorWaveform((OscillatorWaveform)m_oscillator_waveform_combobox.getSelectedId());
+    };
 }
 
 NewProjectAudioProcessorEditor::~NewProjectAudioProcessorEditor()
