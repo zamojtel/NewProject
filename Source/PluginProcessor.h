@@ -81,9 +81,14 @@ public:
     float m_vibrato_hertz = 2;
     float m_vibrato_cents = 20;
     std::array<Wavetable<float>,MIDI_KEY_COUNT> m_wavetable;
+    std::array<juce::AudioBuffer<float>, MIDI_KEY_COUNT> m_samples;
     int m_wavetable_size = 4096; //
-
+    juce::AudioBuffer<float> m_sample;
+    void load_sample(std::string file_name);
+    //0 lewy 1 prawy
     OscillatorWaveform m_oscillator_waveform;
+    size_t m_sample_length;
+    std::array<std::array<std::vector<float>, 2>, MIDI_KEY_COUNT> m_shifted_samples;
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NewProjectAudioProcessor);
@@ -91,6 +96,11 @@ private:
 
     LowFrequencyOscillator<float> m_vibrato_oscillator;
     Waveform m_vibrato_waveform = Waveform::SQUARE;
+    /// <summary>
+    /// tablice z dzwiêkami dla wszystkich klawiszy 
+    /// </summary>
+
+  
     //general settings 
   /*  float m_attack = 10;
     float m_decay = 5;

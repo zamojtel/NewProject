@@ -1,9 +1,9 @@
 
 #include "ADSR.h"
 
-struct SineWaveVoice : public juce::SynthesiserVoice
+struct MySynthesizerVoice : public juce::SynthesiserVoice
 {
-    SineWaveVoice(NewProjectAudioProcessor *m_plugin_processor);
+    MySynthesizerVoice(NewProjectAudioProcessor *m_plugin_processor);
 
     bool canPlaySound(juce::SynthesiserSound* sound) override;
 
@@ -23,6 +23,7 @@ struct SineWaveVoice : public juce::SynthesiserVoice
 
 private:
     //double currentAngle = 0.0, angleDelta = 0.0, 
+    int midi_note_number;
     double level = 0.0, tailOff = 0.0;
     NewProjectAudioProcessor *m_plugin_processor;
     //0-1 gdzie 1 to czêstotliwoœæ próbkowania 
@@ -30,4 +31,5 @@ private:
     float m_normalized_frequency;
     float m_phase;
     Wavetable<float>* m_wavetable;
+    int m_sample_position=0;
 };

@@ -16,8 +16,8 @@
 #include "SpectrumInverseFFT.h"
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include "SineWaveVoice.h"
-#include "SineWaveSound.h"
+#include "MySynthesizerVoice.h"
+#include "MySynthesizerSound.h"
 #include "WaveformModel.h"
 #include "WavetableBuilder.h"
 #include "WaveformFunctions.h"
@@ -66,12 +66,16 @@ NewProjectAudioProcessor::NewProjectAudioProcessor()
     //budujemy 128 wavetables bo tyle jest klawiszy
 
   /*  builder.build(&model,MIDI_KEY_COUNT,f,m_wavetable_size,m_wavetable.data(), 44100);*/
-    m_synthesizer.addSound(new SineWaveSound());
+    m_synthesizer.addSound(new MySynthesizerSound());
     m_vibrato_waveform = Waveform::SQUARE;
-    //m_synthesizer.addVoice(new SineWaveVoice());
+    //m_synthesizer.addVoice(new MySynthesizerVoice());
     //dodajemy 16 glosow ktore mozemy odgrywac na raz
     for (int i = 0; i < 16; i++) {
-        m_synthesizer.addVoice(new SineWaveVoice(this));
+        m_synthesizer.addVoice(new MySynthesizerVoice(this));
+    }
+
+    for (size_t i = 0; i < MIDI_KEY_COUNT; i++) {
+
     }
 }
 
@@ -365,4 +369,120 @@ void NewProjectAudioProcessor::setOscillatorWaveform(OscillatorWaveform oscillat
 
 OscillatorWaveform NewProjectAudioProcessor::getOscillatorWaveform() const {
     return m_oscillator_waveform;
+}
+
+void NewProjectAudioProcessor::load_sample(std::string file_name) {
+    //auto wildcardFilter = std::make_unique<WildcardFileFilter>("*.foo", String(), "Foo files");
+
+    //auto browser = std::make_unique<FileBrowserComponent>(FileBrowserComponent::canSelectFiles,
+    //    File(),
+    //    wildcardFilter.get(),
+    //    nullptr);
+
+    //auto dialogBox = std::make_unique<FileChooserDialogBox>("Open some kind of file",
+    //    "Please choose some kind of file that you want to open...",
+    //    *browser,
+    //    false,
+    //    Colours::lightgrey);
+
+    std::vector<float> left_channel;
+    std::vector<float> right_channel;
+
+    //juce::File file("C:\\Users\\zamoj\\OneDrive\\Pulpit\\ttsMP3.com_VoiceText_2022-5-20_20_36_1.wav");
+    juce::File file(file_name);
+    juce::AudioFormatManager formatManager;
+    formatManager.registerBasicFormats();
+    juce::ScopedPointer<juce::AudioFormatReader> reader = formatManager.createReaderFor(file);
+    if (reader != 0)
+    {
+
+        int samples_per_channel = reader->lengthInSamples / reader->numChannels;
+        left_channel.resize(samples_per_channel);
+        right_channel.resize(samples_per_channel);
+        if (reader->numChannels == 1) {
+            float* temp = left_channel.data();
+            reader->read(&temp, 1, 0, samples_per_channel);
+            memcpy(right_channel.data(), temp, samples_per_channel * sizeof(float));
+        }
+        else {
+            float* data[] = { left_channel.data(),right_channel.data() };
+            reader->read(data, 2, 0, samples_per_channel * 2);
+        }
+
+        /* for (size_t i = 0; i < samples_per_channel; i++) {
+             float t = (float)i / samples_per_channel;
+             float value = sin(200 * t * 3.14 * 2);
+             left_channel[i] = value;
+             right_channel[i] = value;
+         }*/
+        //uzupe³nianie zerami do potegi 2 
+        int power_of_two = 2;
+        
+        for (; power_of_two < samples_per_channel; power_of_two *= 2) {}
+        m_sample_length = power_of_two;
+        SpectrumFFT<float> sfft(power_of_two);
+       
+        //left_channel
+        /*SpectrumFFT*/
+        left_channel.resize(power_of_two,0);
+        right_channel.resize(power_of_two,0);
+        std::vector<float> amplitudes[2];
+        std::vector<float> phases[2];
+        m_sample.setSize(2, samples_per_channel);
+        m_sample.copyFrom(0, 0, left_channel.data(), samples_per_channel);
+        m_sample.copyFrom(1, 0, right_channel.data(), samples_per_channel);
+        //druga po³owa jest symetryczna 
+        size_t spectrum_length = power_of_two / 2 + 1;
+        amplitudes[0].resize(spectrum_length);
+        amplitudes[1].resize(spectrum_length);
+        phases[0].resize(spectrum_length);
+        phases[1].resize(spectrum_length);
+        sfft.perform(left_channel.data(), amplitudes[0].data(), phases[0].data());
+        sfft.perform(right_channel.data(), amplitudes[1].data(), phases[1].data());
+        int shift_per_key = 100;
+
+        std::vector<float> shifted_amplitudes[2];
+        shifted_amplitudes[0].resize(spectrum_length);
+        shifted_amplitudes[1].resize(spectrum_length);
+        std::vector<float> shifted_phases[2];
+        shifted_phases[0].resize(spectrum_length);
+        shifted_phases[1].resize(spectrum_length);
+        int shift_buckets;
+        SpectrumInverseFFT<float> sifft(power_of_two);
+
+        for (size_t key = 0; key < MIDI_KEY_COUNT; key++) {
+            shift_buckets = (key - MIDI_KEY_COUNT / 2) * shift_per_key;
+            if (shift_buckets < 0) {
+                for (size_t i = 1; i < spectrum_length+shift_buckets; i++) {
+
+                    shifted_amplitudes[0][i] = amplitudes[0][i - shift_buckets];
+                    shifted_amplitudes[1][i] = amplitudes[1][i - shift_buckets];
+                    shifted_phases[0][i] = phases[0][i - shift_buckets];
+                    shifted_phases[1][i] = phases[1][i - shift_buckets];
+                }
+            }
+            else {
+                for (size_t i = spectrum_length-1; i > shift_buckets; i--) {
+                    shifted_amplitudes[0][i] = amplitudes[0][i - shift_buckets];
+                    shifted_amplitudes[1][i] = amplitudes[1][i - shift_buckets];
+                    shifted_phases[0][i] = phases[0][i - shift_buckets];
+                    shifted_phases[1][i] = phases[1][i - shift_buckets];
+
+                }
+            }
+            //1 kanal
+            m_shifted_samples[key][0].resize(power_of_two);
+            //2
+            m_shifted_samples[key][1].resize(power_of_two);
+            sifft.perform(shifted_amplitudes[0].data(), shifted_phases[0].data(),
+                m_shifted_samples[key][0].data());
+
+            m_shifted_samples[key][1].resize(power_of_two);
+            sifft.perform(shifted_amplitudes[1].data(), shifted_phases[1].data(),
+                m_shifted_samples[key][1].data());
+
+        }
+        
+    }
+
 }

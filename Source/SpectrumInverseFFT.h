@@ -1,6 +1,6 @@
 
-
-
+#ifndef SPECTRUMINVERSEFFT_H
+#define SPECTRUMINVERSEFFT_H
 template<typename T> class SpectrumInverseFFT
 {
 public:
@@ -47,3 +47,5 @@ private:
 	RealInverseFFT<T> m_rifft;
 	std::vector<std::complex<T>> m_rifft_input;
 };
+
+#endif

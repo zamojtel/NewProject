@@ -1,5 +1,7 @@
 
-
+#ifndef COMPLEXFFT_H
+#define COMPLEXFFT_H
+#include <complex>
 template<typename T> class ComplexFFT
 {
 public:
@@ -53,6 +55,7 @@ private:
 
 	void p_perform(size_t signal_size, const std::complex<T> *input, std::complex<T> *output, size_t step)
 	{
+		//algorytm Cooley-Tukey
 		if(signal_size == 1)
 			output[0] = input[0];
 		else
@@ -70,3 +73,4 @@ private:
 	}
 };
 
+#endif 

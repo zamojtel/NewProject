@@ -10,6 +10,13 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "ComplexFFT.h"
+#include "ComplexInverseFFT.h"
+#include "RealFFT.h"
+#include "RealInverseFFT.h"
+#include "SpectrumFFT.h"
+#include "SpectrumInverseFFT.h"
+
 
 //==============================================================================
 /**
@@ -44,8 +51,9 @@ private:
     juce::Label m_vibrato_rate_slider_label;
     juce::Label m_vibrato_depth_slider_label;
     juce::Label m_vibrato_shape_label;
+    juce::TextButton m_load_sample_button;
+    void load_sample();
       
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NewProjectAudioProcessorEditor)
 
 };

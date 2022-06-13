@@ -1,5 +1,5 @@
-
-
+#ifndef REALINVERSEFFT_H
+#define REALINVERSEFFT_H
 template<typename T> class RealInverseFFT
 {
 public:
@@ -12,6 +12,7 @@ public:
 	void perform(const std::complex<T> *input, T *output)
 	{
 		size_t size = get_signal_size();
+		//kopiowanie pamieci gdzie skad ile bajtow
 		memcpy(m_cifft_input, input, (size/2+1) * sizeof(std::complex<T>));
 		for(size_t i = size/2+1; i < size; ++i)
 			m_cifft_input[i] = std::conj(m_cifft_input[size-i]); //{m_cifft_input[size-i].real(), -m_cifft_input[size-i].imag()};
@@ -19,21 +20,6 @@ public:
 		for(size_t i = 0; i < size; ++i)
 			output[i] = m_cifft_output[i].real();
 	}
-
-
-	void perform(const T *magnitudes, const T *phases, T *output)
-	{
-		size_t size = get_signal_size();
-		size_t spectrum_size = size/2+1;
-		for(size_t i = 0; i < spectrum_size; ++i)
-			m_cifft_input[i] = {magnitudes[i] * cos(phases[i]), magnitudes[i] * sin(phases[i])};
-		for(size_t i = spectrum_size; i < size; ++i)
-			m_cifft_input[i] = std::conj(m_cifft_input[size-i]); //{m_cifft_input[size-i].r, -m_cifft_input[size-i].i};
-		m_cifft.perform(m_cifft_input, m_cifft_output);
-		for(size_t i = 0; i < size; ++i)
-			output[i] = m_cifft_output[i].real();
-	}
-
 
 	RealInverseFFT()
 	{
@@ -54,7 +40,6 @@ public:
 		m_cifft_output = m_cifft_input + size;
 	}
 
-
 private:
 	ComplexInverseFFT<T> m_cifft;
 	std::vector<std::complex<T>> m_cifft_data;
@@ -62,4 +47,5 @@ private:
 	std::complex<T> *m_cifft_output = nullptr;
 };
 
+#endif
 

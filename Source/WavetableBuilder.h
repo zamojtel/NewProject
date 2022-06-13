@@ -6,7 +6,8 @@ public:
 	//frequencies are sorted increasingly
 	//thanks to this function we can play without aliasing 
 	void build(const WaveformModel<T>* model, int count, const T* base_frequencies, size_t wavetable_size, Wavetable<U>* result, T sample_rate) {
-		//SpectrumFFT<float> sfft(1024);
+		//Spectrum
+		// <float> sfft(1024);
 	//sfft.perform(waveform.data(), amplitudes.data(), phases.data());
 		std::vector<T> model_amplitudes(model->get_size() / 2 + 1);
 		std::vector<T> model_phases(model->get_size() / 2 + 1);

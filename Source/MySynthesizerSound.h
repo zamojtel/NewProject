@@ -1,8 +1,8 @@
 
 
-struct SineWaveSound : public juce::SynthesiserSound
+struct MySynthesizerSound : public juce::SynthesiserSound
 {
-    SineWaveSound() {}
+    MySynthesizerSound() {}
 
     bool appliesToNote(int /*midiNoteNumber*/) override { return true; }
     bool appliesToChannel(int /*midiChannel*/) override { return true; }

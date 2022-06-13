@@ -1,4 +1,6 @@
 
+#ifndef REALFFT_H
+#define REALFFT_H
 template<typename T> class RealFFT
 {
 public:
@@ -7,7 +9,7 @@ public:
 		return m_cfft.get_signal_size();
 	}
 
-
+	//na wejsciu sygnal rzeczywisty 
 	void perform(const T *input, std::complex<T> *output)
 	{
 		for(size_t i = 0, e = get_signal_size(); i < e; ++i)
@@ -16,15 +18,14 @@ public:
 		memcpy(output, m_cfft_output, (get_signal_size()/2+1) * sizeof(std::complex<T>));
 	}
 
-
 	RealFFT()
 	{
 	}
 
 
-	RealFFT(size_t a_signal_size)
+	RealFFT(size_t signal_size)
 	{
-		set_signal_size(a_size);
+		set_signal_size(size);
 	}
 
 
@@ -39,8 +40,9 @@ public:
 
 private:
 	ComplexFFT<T> m_cfft;
+	//input i output do complex fft jest trzymany w jednej tablicy aby dane byly blisko sb
 	std::vector<std::complex<T>> m_cfft_data;
 	std::complex<T> *m_cfft_input = nullptr;
 	std::complex<T> *m_cfft_output = nullptr;
 };
-
+#endif 
